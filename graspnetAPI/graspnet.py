@@ -52,6 +52,11 @@ import os
 import numpy as np
 from tqdm import tqdm
 import open3d as o3d
+try:
+	import sys
+	sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
+except:
+	pass
 import cv2
 import trimesh
 
@@ -607,6 +612,7 @@ class GraspNet():
             if collision_labels is None:
                 print('warning: collision_labels are not given, calling self.loadCollisionLabels to retrieve them')
                 collision_labels = self.loadCollisionLabels(sceneId)
+            print(f"Loaded grasp label and grasp collision")
 
             num_views, num_angles, num_depths = 300, 12, 4
             template_views = generate_views(num_views)
@@ -614,7 +620,6 @@ class GraspNet():
             template_views = np.tile(template_views, [1, 1, num_angles, num_depths, 1])
 
             collision_dump = collision_labels['scene_'+str(sceneId).zfill(4)]
-
             # grasp = dict()
             grasp_group = GraspGroup()
             for i, (obj_idx, trans) in enumerate(zip(obj_list, pose_list)):

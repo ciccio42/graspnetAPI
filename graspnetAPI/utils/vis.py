@@ -3,8 +3,8 @@ import time
 import numpy as np
 import open3d as o3d
 from transforms3d.euler import euler2mat, quat2mat
-from .utils import generate_scene_model, generate_scene_pointcloud, generate_views, get_model_grasps, plot_gripper_pro_max, transform_points
-from .rotation import viewpoint_params_to_matrix, batch_viewpoint_params_to_matrix
+from utils import generate_scene_model, generate_scene_pointcloud, generate_views, get_model_grasps, plot_gripper_pro_max, transform_points
+from rotation import viewpoint_params_to_matrix, batch_viewpoint_params_to_matrix
 
 def create_table_cloud(width, height, depth, dx=0, dy=0, dz=0, grid_size=0.01):
     '''
@@ -374,10 +374,10 @@ def vis_rec_grasp(rec_grasp_tuples,numGrasp,image_path,save_path,show=False):
 
 if __name__ == '__main__':
     camera = 'kinect'
-    dataset_root = '../'
-    scene_name = 'scene_0000'
+    dataset_root = '/media/ciccio/Extreme SSD/graspnet'
+    scene_name = 'scene_0001'
     anno_idx = 0
     obj_idx = 0
-    visAnno(dataset_root, scene_name, anno_idx, camera, num_grasp=1, th=0.5, align_to_table=True, max_width=0.08, save_folder='save_fig', show=False)
-    vis6D(dataset_root, scene_name, anno_idx, camera, align_to_table=True, save_folder='save_fig', show=False)
-    visObjGrasp(dataset_root, obj_idx, num_grasp=10, th=0.5, save_folder='save_fig', show=False)
+    visAnno(dataset_root, scene_name, anno_idx, camera, num_grasp=1, th=0.5, align_to_table=True, max_width=0.08, save_folder='save_fig', show=True)
+    vis6D(dataset_root, scene_name, anno_idx, camera, align_to_table=True, save_folder='save_fig', show=True)
+    visObjGrasp(dataset_root, obj_idx, num_grasp=10, th=0.5, save_folder='save_fig', show=True)

@@ -8,19 +8,18 @@ import open3d as o3d
 # GraspNetAPI example for checking the data completeness.
 # change the graspnet_root path
 
-camera = 'kinect'
+camera = 'realsense'
 sceneId = 5
 annId = 3
 
 ####################################################################
-graspnet_root = '/home/gmh/graspnet' # ROOT PATH FOR GRASPNET
+graspnet_root = '/media/ciccio/Extreme SSD/graspnet' # ROOT PATH FOR GRASPNET
 ####################################################################
 
 g = GraspNet(graspnet_root, camera = camera, split = 'all')
 
 bgr = g.loadBGR(sceneId = sceneId, camera = camera, annId = annId)
 depth = g.loadDepth(sceneId = sceneId, camera = camera, annId = annId)
-
 # Rect to 6d
 rect_grasp_group = g.loadGrasp(sceneId = sceneId, camera = camera, annId = annId, fric_coef_thresh = 0.2, format = 'rect')
 

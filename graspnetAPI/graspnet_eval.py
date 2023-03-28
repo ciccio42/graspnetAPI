@@ -4,6 +4,8 @@ import numpy as np
 import os
 import time
 import pickle
+import sys
+import gc
 import open3d as o3d
 
 from .graspnet import GraspNet
@@ -26,6 +28,9 @@ class GraspNetEval(GraspNet):
     - split: string of the date split.
     '''
     def __init__(self, root, camera, split = 'test'):
+        '''
+        self.i = 0
+        '''
         super(GraspNetEval, self).__init__(root, camera, split)
         
     def get_scene_models(self, scene_id, ann_id):
@@ -115,19 +120,16 @@ class GraspNetEval(GraspNet):
         table = create_table_points(1.0, 1.0, 0.05, dx=-0.5, dy=-0.5, dz=-0.05, grid_size=0.008)
         
         list_coe_of_friction = [0.2,0.4,0.6,0.8,1.0,1.2]
-
         model_list, dexmodel_list, _ = self.get_scene_models(scene_id, ann_id=0)
-
         model_sampled_list = list()
         for model in model_list:
             model_sampled = voxel_sample_points(model, 0.008)
             model_sampled_list.append(model_sampled)
-
         scene_accuracy = []
         grasp_list_list = []
         score_list_list = []
         collision_list_list = []
-
+        
         for ann_id in range(256):
             grasp_group = GraspGroup().from_npy(os.path.join(dump_folder,get_scene_name(scene_id), self.camera, '%04d.npy' % (ann_id,)))
             _, pose_list, camera_pose, align_mat = self.get_model_poses(scene_id, ann_id)
@@ -189,15 +191,37 @@ class GraspNetEval(GraspNet):
 
             #calculate AP
             grasp_accuracy = np.zeros((TOP_K,len(list_coe_of_friction)))
+            
             for fric_idx, fric in enumerate(list_coe_of_friction):
+                '''
+                if self.i == 0:  
+                    print(f"fric {fric}")
+                '''
                 for k in range(0,TOP_K):
                     if k+1 > len(score_list):
                         grasp_accuracy[k,fric_idx] = np.sum(((score_list<=fric) & (score_list>0)).astype(int))/(k+1)
                     else:
                         grasp_accuracy[k,fric_idx] = np.sum(((score_list[0:k+1]<=fric) & (score_list[0:k+1]>0)).astype(int))/(k+1)
-
+                    '''                    
+                    if self.i == 0:
+                    print(f"-----{k}----{fric}")
+                    print(f"score_list: {score_list}")
+                    print(f"{k} -- {grasp_accuracy[k,fric_idx]}")
+                    '''
+            '''
+            self.i+=1
+            '''
             print('\rMean Accuracy for scene:%04d ann:%04d = %.3f' % (scene_id, ann_id, 100.0 * np.mean(grasp_accuracy[:,:])), end='', flush=True)
+            
+            save_dir = "logs/accuracy_dump_rs/scene_%04d/%04d.npy" % (scene_id, ann_id)
+            np.save(save_dir, grasp_accuracy)
+
             scene_accuracy.append(grasp_accuracy)
+
+        del model_list, dexmodel_list, _
+        del model_sampled_list
+        gc.collect()
+        
         if not return_list:
             return scene_accuracy
         else:
@@ -217,6 +241,14 @@ class GraspNetEval(GraspNet):
 
         - scene_acc_list: list of the scene accuracy.
         '''
+        '''
+        scene_acc_list = []
+        for scene_id in scene_ids:
+            print(scene_id)
+            scene_acc_list.append(self.eval_scene(scene_id=scene_id, dump_folder=dump_folder))        
+        return scene_acc_list
+        '''
+        #'''
         from multiprocessing import Pool
         p = Pool(processes = proc)
         res_list = []
@@ -228,7 +260,7 @@ class GraspNetEval(GraspNet):
         for res in res_list:
             scene_acc_list.append(res.get())
         return scene_acc_list
-
+        #'''
     def eval_seen(self, dump_folder, proc = 2):
         '''
         **Input:**

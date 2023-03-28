@@ -9,10 +9,10 @@ import cv2
 # change the graspnet_root path
 
 ####################################################################
-graspnet_root = '/home/gmh/graspnet' # ROOT PATH FOR GRASPNET
+graspnet_root = '/media/ciccio/Extreme SSD/graspnet' # ROOT PATH FOR GRASPNET
 ####################################################################
 
-sceneId = 1
+sceneId = 10
 annId = 3
 
 # initialize a GraspNet instance  

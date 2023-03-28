@@ -147,9 +147,7 @@ Besides, one important function is that users can **dump** a GraspGroup into a n
 Rectangle Grasp
 ^^^^^^^^^^^^^^^
 7 float numbers are used to define a general rectangle grasp, i.e. the center point, the open point, height, score and the attached object id.
-The detailed definition of each parameter is shown in the figure above and below and the coordinates for center point and open point are in the pixel frame.
-
-.. image:: _static/rect_grasp_definition.png
+The detailed defition of each parameter is shown in the figure above and the coordinates for center point and open point are in the pixel frame.
 
 .. literalinclude:: ../../graspnetAPI/grasp.py
     :lines: 553-572

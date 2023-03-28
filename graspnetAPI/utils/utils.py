@@ -7,6 +7,8 @@ from transforms3d.euler import euler2mat
 from .rotation import batch_viewpoint_params_to_matrix
 from .xmlhandler import xmlReader
 
+from graspnet import DEPTH_BASE, FINGER_LENGHT, FINGER_HEIGHT, FINGER_WIDTH
+
 class CameraInfo():
     ''' Author: chenxi-wang
     Camera intrinsics for point cloud generation.
@@ -450,7 +452,7 @@ def plot_axis(R,center,length,grid_size = 0.01):
     cloud.points = o3d.utility.Vector3dVector(p)
     return cloud
 
-def plot_gripper_pro_max(center, R, width, depth, score=1, color=None):
+def plot_gripper_pro_max(center, R, width, depth, score=1, color=None, plot_default=True):
     '''
     Author: chenxi-wang
     
@@ -469,11 +471,19 @@ def plot_gripper_pro_max(center, R, width, depth, score=1, color=None):
     - open3d.geometry.TriangleMesh
     '''
     x, y, z = center
-    height=0.004
-    finger_width = 0.004
-    tail_length = 0.04
-    depth_base = 0.02
     
+    if plot_default:
+        height = FINGER_HEIGHT
+        finger_width = FINGER_WIDTH
+        tail_length = 0.04
+        depth_base = DEPTH_BASE
+        
+        """
+        height = 0.004
+        finger_width = 0.004
+        tail_length = 0.04
+        depth_base = 0.02
+        """
     if color is not None:
         color_r, color_g, color_b = color
     else:
@@ -481,45 +491,83 @@ def plot_gripper_pro_max(center, R, width, depth, score=1, color=None):
         color_g = 0
         color_b = 1 - score # blue for low score
     
-    left = create_mesh_box(depth+depth_base+finger_width, finger_width, height)
-    right = create_mesh_box(depth+depth_base+finger_width, finger_width, height)
-    bottom = create_mesh_box(finger_width, width, height)
-    tail = create_mesh_box(tail_length, finger_width, height)
+    if plot_default:
+        left = create_mesh_box(depth+depth_base+finger_width, finger_width, height)
+        right = create_mesh_box(depth+depth_base+finger_width, finger_width, height)
+        bottom = create_mesh_box(finger_width, width, height)
+        tail = create_mesh_box(tail_length, finger_width, height)
+        
+        left_points = np.array(left.vertices)
+        left_triangles = np.array(left.triangles)
+        left_points[:,0] -= depth_base + finger_width
+        left_points[:,1] -= width/2 + finger_width
+        left_points[:,2] -= height/2
 
-    left_points = np.array(left.vertices)
-    left_triangles = np.array(left.triangles)
-    left_points[:,0] -= depth_base + finger_width
-    left_points[:,1] -= width/2 + finger_width
-    left_points[:,2] -= height/2
+        right_points = np.array(right.vertices)
+        right_triangles = np.array(right.triangles) + 8
+        right_points[:,0] -= depth_base + finger_width
+        right_points[:,1] += width/2
+        right_points[:,2] -= height/2
 
-    right_points = np.array(right.vertices)
-    right_triangles = np.array(right.triangles) + 8
-    right_points[:,0] -= depth_base + finger_width
-    right_points[:,1] += width/2
-    right_points[:,2] -= height/2
+        bottom_points = np.array(bottom.vertices)
+        bottom_triangles = np.array(bottom.triangles) + 16
+        bottom_points[:,0] -= finger_width + depth_base
+        bottom_points[:,1] -= width/2
+        bottom_points[:,2] -= height/2
 
-    bottom_points = np.array(bottom.vertices)
-    bottom_triangles = np.array(bottom.triangles) + 16
-    bottom_points[:,0] -= finger_width + depth_base
-    bottom_points[:,1] -= width/2
-    bottom_points[:,2] -= height/2
+        tail_points = np.array(tail.vertices)
+        tail_triangles = np.array(tail.triangles) + 24
+        tail_points[:,0] -= tail_length + finger_width + depth_base
+        tail_points[:,1] -= finger_width / 2
+        tail_points[:,2] -= height/2
 
-    tail_points = np.array(tail.vertices)
-    tail_triangles = np.array(tail.triangles) + 24
-    tail_points[:,0] -= tail_length + finger_width + depth_base
-    tail_points[:,1] -= finger_width / 2
-    tail_points[:,2] -= height/2
+        vertices = np.concatenate([left_points, right_points, bottom_points, tail_points], axis=0)
+        vertices = np.dot(R, vertices.T).T + center
+        triangles = np.concatenate([left_triangles, right_triangles, bottom_triangles, tail_triangles], axis=0)
+        colors = np.array([ [color_r,color_g,color_b] for _ in range(len(vertices))])
 
-    vertices = np.concatenate([left_points, right_points, bottom_points, tail_points], axis=0)
-    vertices = np.dot(R, vertices.T).T + center
-    triangles = np.concatenate([left_triangles, right_triangles, bottom_triangles, tail_triangles], axis=0)
-    colors = np.array([ [color_r,color_g,color_b] for _ in range(len(vertices))])
+        gripper = o3d.geometry.TriangleMesh()
+        gripper.vertices = o3d.utility.Vector3dVector(vertices)
+        gripper.triangles = o3d.utility.Vector3iVector(triangles)
+        gripper.vertex_colors = o3d.utility.Vector3dVector(colors)
+        return gripper
+    
+    else:
+        # create_mesh_box(width, height, depth, dx=0, dy=0, dz=0)
+        left = create_mesh_box(FINGER_LENGHT, FINGER_WIDTH, FINGER_HEIGHT)
+        right = create_mesh_box(FINGER_LENGHT, FINGER_WIDTH, FINGER_HEIGHT)
+        bottom = create_mesh_box(0.01, width+(2*FINGER_WIDTH), FINGER_HEIGHT)
+        #tail = create_mesh_box(tail_length, FINGER_WIDTH, height)
+        
+        
+        left_points = np.array(left.vertices)
+        left_triangles = np.array(left.triangles)
+        left_points[:,0] -= (FINGER_LENGHT - depth)
+        left_points[:,1] -= (width/2 + FINGER_WIDTH)
+        left_points[:,2] -= FINGER_HEIGHT/2
 
-    gripper = o3d.geometry.TriangleMesh()
-    gripper.vertices = o3d.utility.Vector3dVector(vertices)
-    gripper.triangles = o3d.utility.Vector3iVector(triangles)
-    gripper.vertex_colors = o3d.utility.Vector3dVector(colors)
-    return gripper
+        right_points = np.array(right.vertices)
+        right_triangles = np.array(right.triangles) + 8
+        right_points[:,0] -= (FINGER_LENGHT - depth)
+        right_points[:,1] += (width/2)
+        right_points[:,2] -= FINGER_HEIGHT/2
+        
+        bottom_points = np.array(bottom.vertices)
+        bottom_triangles = np.array(bottom.triangles) + 16
+        bottom_points[:,0] -= ((FINGER_LENGHT - depth) + 0.01)
+        bottom_points[:,1] -= (width+(2*FINGER_WIDTH))/2
+        bottom_points[:,2] -= FINGER_HEIGHT/2
+
+        vertices = np.concatenate([left_points, right_points, bottom_points], axis=0)
+        vertices = np.dot(R, vertices.T).T + center
+        triangles = np.concatenate([left_triangles, right_triangles, bottom_triangles], axis=0)
+        colors = np.array([ [color_r,color_g,color_b] for _ in range(len(vertices))])
+
+        gripper = o3d.geometry.TriangleMesh()
+        gripper.vertices = o3d.utility.Vector3dVector(vertices)
+        gripper.triangles = o3d.utility.Vector3iVector(triangles)
+        gripper.vertex_colors = o3d.utility.Vector3dVector(colors)
+        return gripper
 
 
 def find_scene_by_model_id(dataset_root, model_id_list):

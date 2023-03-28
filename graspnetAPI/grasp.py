@@ -36,7 +36,7 @@ class Grasp():
             raise ValueError('only 1 or 7 arguments are accepted')
     
     def __repr__(self):
-        return 'Grasp: score:{}, width:{}, height:{}, depth:{}, translation:{}\nrotation:\n{}\nobject id:{}'.format(self.score, self.width, self.height, self.depth, self.translation, self.rotation_matrix, self.object_id)
+        return f'Grasp: score:{self.score:.3f}, width:{self.width:.3f}, height:{self.height:.3f}, depth:{self.depth:.3f}, translation:{self.translation}\nrotation:\n{self.rotation_matrix}\nobject id:{self.object_id}'
 
     @property
     def score(self):
@@ -552,6 +552,7 @@ class GraspGroup():
         - GraspGroup instance after nms.
         '''
         from grasp_nms import nms_grasp
+        import grasp_nms
         return GraspGroup(nms_grasp(self.grasp_group_array, translation_thresh, rotation_thresh))
 
 class RectGrasp():
@@ -990,8 +991,7 @@ class RectGraspGroup():
         norm_open_point_vector = np.linalg.norm(open_point_vector, axis = 1).reshape(-1, 1)
         unit_open_point_vector = open_point_vector / np.hstack((norm_open_point_vector, norm_open_point_vector)) # (-1, 2)
         counter_clock_wise_rotation_matrix = np.array([[0,-1], [1, 0]])
-        # upper_points = np.dot(counter_clock_wise_rotation_matrix, unit_open_point_vector.reshape(-1, 2, 1)).reshape(-1, 2) * np.hstack([heights, heights]) / 2 + centers # (-1, 2)
-        upper_points = np.einsum('ij,njk->nik', counter_clock_wise_rotation_matrix, unit_open_point_vector.reshape(-1, 2, 1)).reshape(-1, 2) * np.hstack([heights, heights]) / 2 + centers # (-1, 2)
+        upper_points = np.dot(counter_clock_wise_rotation_matrix, unit_open_point_vector.reshape(-1, 2, 1)).reshape(-1, 2) * np.hstack([heights, heights]) / 2 + centers # (-1, 2)
         return centers, open_points, upper_points
 
     def to_grasp_group(self, camera, depths, depth_method = batch_center_depth):

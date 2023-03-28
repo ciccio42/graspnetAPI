@@ -7,18 +7,18 @@ import numpy as np
 from graspnetAPI import GraspNetEval
 
 ####################################################################
-graspnet_root = '/home/gmh/graspnet' # ROOT PATH FOR GRASPNET
-dump_folder = '/home/gmh/git/rgbd_graspnet/dump_affordance_iounan/' # ROOT PATH FOR DUMP
+graspnet_root = '/media/ciccio/Extreme SSD/graspnet' # ROOT PATH FOR GRASPNET
+dump_folder = '/home/ciccio/Desktop/Tesi/graspnet-baseline/logs/Test/Test_1/dump_rs_accuracy_dump_rs_with_default_gripper_parameters' # ROOT PATH FOR DUMP
 ####################################################################
 
-sceneId = 121
-camera = 'kinect'    
-ge_k = GraspNetEval(root = graspnet_root, camera = 'kinect', split = 'test')
-ge_r = GraspNetEval(root = graspnet_root, camera = 'realsense', split = 'test')
+sceneId = 100
+camera = 'realsense'    
+#ge_k = GraspNetEval(root = graspnet_root, camera = 'kinect', split = 'test')
+ge_r = GraspNetEval(root = graspnet_root, camera = 'realsense', split = 'test_seen')
 
 # eval a single scene
 print('Evaluating scene:{}, camera:{}'.format(sceneId, camera))
-acc = ge_k.eval_scene(scene_id = sceneId, dump_folder = dump_folder)
+acc = ge_r.eval_scene(scene_id = sceneId, dump_folder = dump_folder, vis = False)
 np_acc = np.array(acc)
 print('mean accuracy:{}'.format(np.mean(np_acc)))
 
