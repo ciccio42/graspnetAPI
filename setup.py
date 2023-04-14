@@ -14,7 +14,7 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'transforms3d==0.3.1',
+        'transforms3d>=0.4.1',
         'open3d>=0.8.0.0',
         'trimesh',
         'tqdm',
@@ -30,7 +30,7 @@ setup(
         'cvxopt',
         'dill',
         'h5py',
-        'sklearn',
+        'scikit-learn',
         'grasp_nms'
     ]
 )
